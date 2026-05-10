@@ -1,0 +1,207 @@
+{
+ "actions": [],
+ "allow_bulk_edit": 1,
+ "allow_rename": 1,
+ "autoname": "field:warehouse_name",
+ "creation": "2026-05-07 13:10:26.207986",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "section_break_ymnp",
+  "parent_warehouse",
+  "warehouse_name",
+  "is_group",
+  "address",
+  "lft",
+  "rgt",
+  "old_parent",
+  "type",
+  "storage_capacity_section",
+  "maximum_storage_capacity",
+  "column_break_lkar",
+  "available_capacity",
+  "contact_details_section",
+  "phone_number",
+  "email",
+  "column_break_ubmv",
+  "address_line_1",
+  "address_line_2",
+  "citydistrictprovince",
+  "state",
+  "country"
+ ],
+ "fields": [
+  {
+   "fieldname": "section_break_ymnp",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "lft",
+   "fieldtype": "Int",
+   "hidden": 1,
+   "label": "Left",
+   "no_copy": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "rgt",
+   "fieldtype": "Int",
+   "hidden": 1,
+   "label": "Right",
+   "no_copy": 1,
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "is_group",
+   "fieldtype": "Check",
+   "label": "Is Group"
+  },
+  {
+   "fieldname": "old_parent",
+   "fieldtype": "Link",
+   "hidden": 1,
+   "label": "Old Parent",
+   "options": "Warehouse"
+  },
+  {
+   "fieldname": "parent_warehouse",
+   "fieldtype": "Link",
+   "ignore_user_permissions": 1,
+   "label": "Parent Warehouse",
+   "options": "Warehouse"
+  },
+  {
+   "fieldname": "warehouse_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Warehouse Name",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "fieldname": "address",
+   "fieldtype": "Long Text",
+   "label": "Address"
+  },
+  {
+   "fieldname": "type",
+   "fieldtype": "Select",
+   "label": "Type",
+   "options": "Warehouse\nFloor\nAisle\nShelf"
+  },
+  {
+   "fieldname": "contact_details_section",
+   "fieldtype": "Section Break",
+   "label": "Contact Details"
+  },
+  {
+   "fieldname": "phone_number",
+   "fieldtype": "Phone",
+   "label": "Phone Number"
+  },
+  {
+   "fieldname": "email",
+   "fieldtype": "Data",
+   "label": "Email"
+  },
+  {
+   "fieldname": "column_break_ubmv",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "address_line_1",
+   "fieldtype": "Data",
+   "label": "Address Line 1"
+  },
+  {
+   "fieldname": "address_line_2",
+   "fieldtype": "Data",
+   "label": "Address Line 2"
+  },
+  {
+   "fieldname": "citydistrictprovince",
+   "fieldtype": "Date",
+   "label": "City/District/Province"
+  },
+  {
+   "fieldname": "state",
+   "fieldtype": "Data",
+   "label": "State"
+  },
+  {
+   "fieldname": "country",
+   "fieldtype": "Data",
+   "label": "Country"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_group",
+   "fieldtype": "Check",
+   "label": "Is Group"
+  },
+  {
+   "fieldname": "parent_warehouse",
+   "fieldtype": "Link",
+   "ignore_user_permissions": 1,
+   "label": "Parent Warehouse",
+   "options": "Warehouse"
+  },
+  {
+   "fieldname": "storage_capacity_section",
+   "fieldtype": "Section Break",
+   "label": "Storage Capacity"
+  },
+  {
+   "fieldname": "maximum_storage_capacity",
+   "fieldtype": "Int",
+   "label": "Maximum Storage Capacity"
+  },
+  {
+   "fieldname": "column_break_lkar",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "available_capacity",
+   "fieldtype": "Data",
+   "in_preview": 1,
+   "label": "Available Capacity",
+   "read_only": 1
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "is_tree": 1,
+ "links": [
+  {
+   "link_doctype": "Stock",
+   "link_fieldname": "warehouse"
+  }
+ ],
+ "modified": "2026-05-07 15:11:20.955568",
+ "modified_by": "Administrator",
+ "module": "Inventory Management",
+ "name": "Warehouse",
+ "naming_rule": "By fieldname",
+ "nsm_parent_field": "parent_warehouse",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}
