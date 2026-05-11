@@ -33,6 +33,7 @@ class IntegrationTestStockEntry(IntegrationTestCase):
 			}
 		).insert()
 
+
 	def tearDown(self):
 		frappe.db.rollback()
 
@@ -62,8 +63,8 @@ class IntegrationTestStockEntry(IntegrationTestCase):
 		self.assertEqual(entries[0].warehouse, self.warehouse_a.name)
 
 	def test_consume_creates_one_ledger_entry_with_negative_quantity(self):
-		receipt = frappe.new_doc("Stock Entry")
-		receipt.update(
+		se = frappe.new_doc("Stock Entry")
+		se.update(
 			{
 				"type": "Receipt",
 				"product": self.product.name,
@@ -72,10 +73,11 @@ class IntegrationTestStockEntry(IntegrationTestCase):
 				"to_warehouse": self.warehouse_a.name,
 			}
 		)
-		receipt.save()
+		se.insert()
+		se.submit()
 
-		stock_entry = frappe.new_doc("Stock Entry")
-		stock_entry.update(
+		se2 = frappe.new_doc("Stock Entry")
+		se2.update(
 			{
 				"type": "Consume",
 				"product": self.product.name,
@@ -84,7 +86,8 @@ class IntegrationTestStockEntry(IntegrationTestCase):
 				"to_warehouse": self.warehouse_a.name,
 			}
 		)
-		stock_entry.save()
+		se2.insert()
+		se2.submit()
 
 		entries = frappe.get_all(
 			"Stock Entry Ledger",
@@ -98,18 +101,19 @@ class IntegrationTestStockEntry(IntegrationTestCase):
 
 	def test_transfer_creates_two_ledger_entries(self):
 		# initialize the stock entry by reciept
-		receipt = frappe.new_doc("Stock Entry")
-		receipt.update({
+		se = frappe.new_doc("Stock Entry")
+		se.update({
 			"type": "Receipt",
 			"product": self.product.name,
 			"quantity": 10,
 			"valuation_rate": 100.0,
 			"to_warehouse": self.warehouse_a.name,
 		})
-		receipt.save()
+		se.insert()
+		se.submit()
 
-		se = frappe.new_doc("Stock Entry")
-		se.update(
+		se2 = frappe.new_doc("Stock Entry")
+		se2.update(
 			{
 				"type": "Transfer",
 				"product": self.product.name,
@@ -119,25 +123,25 @@ class IntegrationTestStockEntry(IntegrationTestCase):
 				"to_warehouse": self.warehouse_b.name,
 			}
 		)
-		se.save()
+		se2.insert()
+		se2.submit()
 
 		entries = frappe.get_all(
 			"Stock Entry Ledger",
 			filters={"product": self.product.name},
 			fields=["entry_type", "quantity_change", "warehouse"],
-			order_by="creation",
+			order_by="creation desc",
 		)
 
 		self.assertEqual(len(entries), 3)
 
+
 		consume_entry = next(e for e in entries if e.entry_type == "Consume")
 		receipt_entry = next(e for e in entries if e.entry_type == "Receipt")
 
-		# account for previously submitted stock entry of reciept i.e 100
 		self.assertEqual(consume_entry.quantity_change, -5)
 		self.assertEqual(consume_entry.warehouse, self.warehouse_a.name)
 
-		# why is this 10 ??????????????? I want to dieeee
 		self.assertEqual(receipt_entry.quantity_change, 5)
 		self.assertEqual(receipt_entry.warehouse, self.warehouse_b.name)
 
@@ -152,7 +156,8 @@ class IntegrationTestStockEntry(IntegrationTestCase):
 				"to_warehouse": self.warehouse_a.name,
 			}
 		)
-		se.save()
+		se.insert()
+		se.submit()
 		self.product.reload()
 		self.assertEqual(self.product.unit_price, 200.0)
 
@@ -166,9 +171,10 @@ class IntegrationTestStockEntry(IntegrationTestCase):
 				"to_warehouse": self.warehouse_a.name,
 			}
 		)
-		se2.save()
+		se2.insert()
+		se2.submit()
 		self.product.reload()
-		self.assertEqual(self.product.unit_price, 150.0)
+		self.assertEqual(self.product.unit_price, 150.0) # type: ignore
 
 	def test_consume_exceeding_stock_raises_validation_error(self):
 		receipt = frappe.new_doc("Stock Entry")
@@ -181,7 +187,8 @@ class IntegrationTestStockEntry(IntegrationTestCase):
 				"to_warehouse": self.warehouse_a.name,
 			}
 		)
-		receipt.save()
+		receipt.insert()
+		receipt.submit()
 
 		consume = frappe.new_doc("Stock Entry")
 		consume.update(
@@ -225,4 +232,4 @@ class IntegrationTestStockEntry(IntegrationTestCase):
 			}
 		)
 		se.insert()
-		self.assertIsNotNone(se.posting_datetime)
+		self.assertIsNotNone(se.posting_datetime) # type: ignore

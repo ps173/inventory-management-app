@@ -32,6 +32,7 @@ class StockEntry(Document):
 		self.posting_datetime = self.posting_datetime or now_datetime()
 
 	def before_submit(self):
+		# check if there is enough stock before submitting for consume and transfer calls
 		if self.type in ("Consume", "Transfer"):
 			warehouse = self.to_warehouse if self.type == "Consume" else self.from_warehouse
 			query_data = frappe.db.sql(
