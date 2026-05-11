@@ -72,8 +72,7 @@ class IntegrationTestStockEntry(IntegrationTestCase):
 				"to_warehouse": self.warehouse_a.name,
 			}
 		)
-		receipt.insert()
-		receipt.submit()
+		receipt.save()
 
 		stock_entry = frappe.new_doc("Stock Entry")
 		stock_entry.update(
@@ -85,8 +84,7 @@ class IntegrationTestStockEntry(IntegrationTestCase):
 				"to_warehouse": self.warehouse_a.name,
 			}
 		)
-		stock_entry.insert()
-		stock_entry.submit()
+		stock_entry.save()
 
 		entries = frappe.get_all(
 			"Stock Entry Ledger",
@@ -108,8 +106,7 @@ class IntegrationTestStockEntry(IntegrationTestCase):
 			"valuation_rate": 100.0,
 			"to_warehouse": self.warehouse_a.name,
 		})
-		receipt.insert()
-		receipt.submit()
+		receipt.save()
 
 		se = frappe.new_doc("Stock Entry")
 		se.update(
@@ -122,8 +119,7 @@ class IntegrationTestStockEntry(IntegrationTestCase):
 				"to_warehouse": self.warehouse_b.name,
 			}
 		)
-		se.insert()
-		se.submit()
+		se.save()
 
 		entries = frappe.get_all(
 			"Stock Entry Ledger",
@@ -156,8 +152,7 @@ class IntegrationTestStockEntry(IntegrationTestCase):
 				"to_warehouse": self.warehouse_a.name,
 			}
 		)
-		se.insert()
-		se.submit()
+		se.save()
 		self.product.reload()
 		self.assertEqual(self.product.unit_price, 200.0)
 
@@ -171,8 +166,7 @@ class IntegrationTestStockEntry(IntegrationTestCase):
 				"to_warehouse": self.warehouse_a.name,
 			}
 		)
-		se2.insert()
-		se2.submit()
+		se2.save()
 		self.product.reload()
 		self.assertEqual(self.product.unit_price, 150.0)
 
@@ -187,8 +181,7 @@ class IntegrationTestStockEntry(IntegrationTestCase):
 				"to_warehouse": self.warehouse_a.name,
 			}
 		)
-		receipt.insert()
-		receipt.submit()
+		receipt.save()
 
 		consume = frappe.new_doc("Stock Entry")
 		consume.update(
