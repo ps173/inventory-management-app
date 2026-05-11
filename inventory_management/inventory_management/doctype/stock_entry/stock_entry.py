@@ -5,6 +5,7 @@ import frappe
 from frappe.model.document import Document
 from frappe.types import DF
 from frappe.utils import now_datetime
+from pypika.functions import Avg, Coalesce, Sum
 
 
 class StockEntry(Document):
@@ -35,15 +36,10 @@ class StockEntry(Document):
 		# check if there is enough stock before submitting for consume and transfer calls
 		if self.type in ("Consume", "Transfer"):
 			warehouse = self.to_warehouse if self.type == "Consume" else self.from_warehouse
-			query_data = frappe.db.sql(
-				"""
-				SELECT COALESCE(SUM(quantity_change), 0)
-				FROM `tabStock Entry Ledger`
-				WHERE product = %(product)s AND warehouse = %(warehouse)s
-			""",
-				{"product": self.product, "warehouse": warehouse},
-			)
-			current_stock = int(query_data[0][0]) # type: ignore
+			stock_entry_ledger = frappe.qb.DocType("Stock Entry Ledger")
+			query = frappe.qb.from_(stock_entry_ledger).select(Coalesce(Sum(stock_entry_ledger.quantity_change), 0)).where(stock_entry_ledger.product == self.product and stock_entry_ledger.warehouse == warehouse)
+			query_data = query.run()
+			current_stock = int(query_data[0][0])
 
 
 			if current_stock < self.quantity:
@@ -83,16 +79,11 @@ class StockEntry(Document):
 
 def calculate_product_valuation(product):
 	# calculate average valuation rate for the product
-	query_data = frappe.db.sql(
-		"""
-		SELECT AVG(valuation_rate)
-		FROM `tabStock Entry Ledger`
-		WHERE product = %(product)s
-	""",
-		{"product": product},
-	)
+	stock_entry_ledger = frappe.qb.DocType('Stock Entry Ledger')
+	query = frappe.qb.from_(stock_entry_ledger).select(Avg(stock_entry_ledger.valuation_rate)).where(stock_entry_ledger.product == product)
+	query_data = query.run()
 
-	average_valuation_rate = query_data[0][0]  # type: ignore
+	average_valuation_rate = query_data[0][0]
 	product = frappe.get_doc("Product", product, for_update=True)
 	product.unit_price = float(average_valuation_rate)  # type: ignore
 	product.save()
