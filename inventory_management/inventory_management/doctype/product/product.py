@@ -1,7 +1,7 @@
 # Copyright (c) 2026, mehmehsloth <pratham@frappe.io> and contributors
 # For license information, please see license.txt
 
-# import frappe
+import frappe
 from frappe.model.document import Document
 
 
@@ -23,3 +23,21 @@ class Product(Document):
 	# end: auto-generated types
 
 	pass
+
+	@frappe.whitelist()
+	def create_stock_entry(self, args: dict):
+		values = args
+		stock_entry = frappe.new_doc("Stock Entry")
+		stock_entry.update(
+			{
+				"product": self.name,
+				"quantity": values.get("quantity"),
+				"type": values.get("type"),
+				"to_warehouse": values.get("to_warehouse"),
+				"from_warehouse": values.get("from_warehouse"),
+				"valuation_rate": self.unit_price,
+			}
+		)
+		stock_entry.save()
+
+		return stock_entry
