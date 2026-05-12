@@ -14,7 +14,7 @@ frappe.query_reports["Stock Balance"] = {
 			fieldname: "date_to",
 			label: __("To Date"),
 			fieldtype: "Datetime",
-			default: frappe.datetime.get_today(), // Default to today
+			default: "today", // Default to today
 			reqd: 1,
 		},
 		{

@@ -2,18 +2,18 @@
 # For license information, please see license.txt
 
 from typing import TypedDict
-from warnings import warn_explicit
 
 import frappe
 from frappe import _
 from frappe.types import DF
+from pypika import Order
+from pypika.functions import Extract, Sum
 
 
 class Filter(TypedDict, total=False):
 	date_from: DF.Datetime
 	date_to: DF.Datetime
 	product: DF.Link
-
 
 
 def execute(filters: Filter):
@@ -45,6 +45,7 @@ def get_columns() -> list[dict]:
 			"fieldname": "product",
 			"fieldtype": "Link",
 			"options": "Product",
+			"width": "400",
 		},
 		{
 			"label": _("Balance"),
@@ -65,22 +66,40 @@ def get_data(filters: Filter) -> list[list]:
 
 	The report data is a list of rows, with each row being a list of cell values.
 	"""
-	formatted_filters = {"date_to": filters.get("date_to"), "date_from": filters.get("date_from"), "product": filters.get("product")}
+	formatted_filters = {
+		"date_to": filters.get("date_to"),
+		"date_from": filters.get("date_from"),
+		"product": filters.get("product"),
+	}
 
-	query_data = frappe.db.sql("""
-		SELECT DATE(posting_datetime) as date, product, SUM(quantity_change) as balance, warehouse
-		FROM `tabStock Entry Ledger`
-		WHERE posting_datetime BETWEEN %(date_from)s AND %(date_to)s
-		AND CASE WHEN %(product)s IS NOT NULL THEN product = %(product)s ELSE 1=1 END
-		GROUP BY DATE(posting_datetime), product, warehouse;
-	""", formatted_filters)
+	stock_entry_ledger = frappe.qb.DocType("Stock Entry Ledger")
+	query = (
+		frappe.qb.from_(stock_entry_ledger)
+		.select(
+			stock_entry_ledger.posting_datetime,
+			stock_entry_ledger.product,
+			Sum(stock_entry_ledger.quantity_change),
+			stock_entry_ledger.warehouse,
+		)
+		.where(
+			stock_entry_ledger.posting_datetime.between(
+				formatted_filters["date_from"], formatted_filters["date_to"]
+			)
+		)
+		.groupby(
+			Extract("day", stock_entry_ledger.posting_datetime),
+			stock_entry_ledger.product,
+			stock_entry_ledger.warehouse,
+		)
+		.orderby(Extract("day", stock_entry_ledger.posting_datetime), order=Order.desc)
+	)
 
+	if formatted_filters["product"]:
+		query = query.where(stock_entry_ledger.product == formatted_filters["product"])
 
-	print(query_data)
+	query_data = query.run()
 
 	if not query_data:
 		return []
 
-	return [
-		[item for item in row] for row in query_data
-	]
+	return [[item for item in row] for row in query_data]

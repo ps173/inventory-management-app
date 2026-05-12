@@ -66,9 +66,10 @@
   }
  ],
  "grid_page_length": 50,
+ "in_create": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-05-08 15:48:08.618015",
+ "modified": "2026-05-11 12:57:12.804468",
  "modified_by": "Administrator",
  "module": "Inventory Management",
  "name": "Stock Entry Ledger",
