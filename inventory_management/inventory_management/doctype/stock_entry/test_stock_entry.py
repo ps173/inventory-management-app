@@ -174,7 +174,7 @@ class IntegrationTestStockEntry(IntegrationTestCase):
 		se2.insert()
 		se2.submit()
 		self.product.reload()
-		self.assertEqual(self.product.unit_price, 150.0) # type: ignore
+		self.assertEqual(self.product.unit_price, 150.0)
 
 	def test_consume_exceeding_stock_raises_validation_error(self):
 		receipt = frappe.new_doc("Stock Entry")
@@ -232,4 +232,4 @@ class IntegrationTestStockEntry(IntegrationTestCase):
 			}
 		)
 		se.insert()
-		self.assertIsNotNone(se.posting_datetime) # type: ignore
+		self.assertIsNotNone(se.posting_datetime)

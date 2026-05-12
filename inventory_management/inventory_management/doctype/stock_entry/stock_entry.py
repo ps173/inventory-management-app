@@ -27,8 +27,6 @@ class StockEntry(Document):
 		valuation_rate: DF.Currency
 	# end: auto-generated types
 
-	pass
-
 	def before_save(self):
 		self.posting_datetime = self.posting_datetime or now_datetime()
 
@@ -37,10 +35,15 @@ class StockEntry(Document):
 		if self.type in ("Consume", "Transfer"):
 			warehouse = self.to_warehouse if self.type == "Consume" else self.from_warehouse
 			stock_entry_ledger = frappe.qb.DocType("Stock Entry Ledger")
-			query = frappe.qb.from_(stock_entry_ledger).select(Coalesce(Sum(stock_entry_ledger.quantity_change), 0)).where(stock_entry_ledger.product == self.product and stock_entry_ledger.warehouse == warehouse)
+			query = (
+				frappe.qb.from_(stock_entry_ledger)
+				.select(Coalesce(Sum(stock_entry_ledger.quantity_change), 0))
+				.where(
+					stock_entry_ledger.product == self.product and stock_entry_ledger.warehouse == warehouse
+				)
+			)
 			query_data = query.run()
 			current_stock = int(query_data[0][0])
-
 
 			if current_stock < self.quantity:
 				frappe.throw(
@@ -75,15 +78,17 @@ class StockEntry(Document):
 		calculate_product_valuation(self.product)
 
 
-
-
 def calculate_product_valuation(product):
 	# calculate average valuation rate for the product
-	stock_entry_ledger = frappe.qb.DocType('Stock Entry Ledger')
-	query = frappe.qb.from_(stock_entry_ledger).select(Avg(stock_entry_ledger.valuation_rate)).where(stock_entry_ledger.product == product)
+	stock_entry_ledger = frappe.qb.DocType("Stock Entry Ledger")
+	query = (
+		frappe.qb.from_(stock_entry_ledger)
+		.select(Avg(stock_entry_ledger.valuation_rate))
+		.where(stock_entry_ledger.product == product)
+	)
 	query_data = query.run()
 
 	average_valuation_rate = query_data[0][0]
 	product = frappe.get_doc("Product", product, for_update=True)
-	product.unit_price = float(average_valuation_rate)  # type: ignore
+	product.unit_price = float(average_valuation_rate)
 	product.save()
