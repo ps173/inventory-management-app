@@ -19,7 +19,7 @@ class Product(Document):
 		image: DF.AttachImage | None
 		product_name: DF.Data
 		sku: DF.Data | None
-		unit_price: DF.Float
+		unit_price: DF.Currency
 	# end: auto-generated types
 
 	pass

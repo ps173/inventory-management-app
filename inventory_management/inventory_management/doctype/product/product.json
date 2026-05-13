@@ -33,7 +33,7 @@
   },
   {
    "fieldname": "unit_price",
-   "fieldtype": "Float",
+   "fieldtype": "Currency",
    "in_list_view": 1,
    "label": "Unit Price",
    "reqd": 1
@@ -61,7 +61,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-05-07 13:05:53.122988",
+ "modified": "2026-05-13 12:48:13.253279",
  "modified_by": "Administrator",
  "module": "Inventory Management",
  "name": "Product",
