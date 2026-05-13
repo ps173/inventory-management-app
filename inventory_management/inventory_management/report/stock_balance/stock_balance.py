@@ -11,7 +11,6 @@ from pypika.functions import Extract, Sum
 
 
 class Filter(TypedDict, total=False):
-	date_from: DF.Datetime
 	date_to: DF.Datetime
 	product: DF.Link
 
@@ -68,8 +67,8 @@ def get_data(filters: Filter) -> list[list]:
 	"""
 	formatted_filters = {
 		"date_to": filters.get("date_to"),
-		"date_from": filters.get("date_from"),
 		"product": filters.get("product"),
+		"warehouse": filters.get("warehouse"),
 	}
 
 	stock_entry_ledger = frappe.qb.DocType("Stock Entry Ledger")
@@ -81,11 +80,7 @@ def get_data(filters: Filter) -> list[list]:
 			Sum(stock_entry_ledger.quantity_change),
 			stock_entry_ledger.warehouse,
 		)
-		.where(
-			stock_entry_ledger.posting_datetime.between(
-				formatted_filters["date_from"], formatted_filters["date_to"]
-			)
-		)
+		.where(stock_entry_ledger.posting_datetime.lte(formatted_filters["date_to"]))
 		.groupby(
 			Extract("day", stock_entry_ledger.posting_datetime),
 			stock_entry_ledger.product,
@@ -96,6 +91,9 @@ def get_data(filters: Filter) -> list[list]:
 
 	if formatted_filters["product"]:
 		query = query.where(stock_entry_ledger.product == formatted_filters["product"])
+
+	if formatted_filters["warehouse"]:
+		query = query.where(stock_entry_ledger.warehouse == formatted_filters["warehouse"])
 
 	query_data = query.run()
 

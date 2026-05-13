@@ -4,13 +4,6 @@
 frappe.query_reports["Stock Balance"] = {
 	filters: [
 		{
-			fieldname: "date_from",
-			label: __("From Date"),
-			fieldtype: "Datetime",
-			default: frappe.datetime.add_days(frappe.datetime.get_today(), -30), // Default to 30 days ago
-			reqd: 1,
-		},
-		{
 			fieldname: "date_to",
 			label: __("To Date"),
 			fieldtype: "Datetime",
@@ -22,6 +15,12 @@ frappe.query_reports["Stock Balance"] = {
 			label: __("Product"),
 			fieldtype: "Link",
 			options: "Product",
+		},
+		{
+			fieldname: "warehouse",
+			label: __("Warehouse"),
+			fieldtype: "Link",
+			options: "Warehouse",
 		},
 	],
 };
