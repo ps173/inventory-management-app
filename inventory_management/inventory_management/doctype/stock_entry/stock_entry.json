@@ -9,13 +9,8 @@
  "field_order": [
   "section_break_7hln",
   "amended_from",
-  "quantity",
-  "type",
-  "product",
-  "to_warehouse",
-  "from_warehouse",
-  "valuation_rate",
-  "posting_datetime"
+  "posting_datetime",
+  "entry_items"
  ],
  "fields": [
   {
@@ -33,62 +28,22 @@
    "search_index": 1
   },
   {
-   "fieldname": "quantity",
-   "fieldtype": "Int",
-   "in_list_view": 1,
-   "label": "Quantity",
-   "reqd": 1
-  },
-  {
-   "fieldname": "type",
-   "fieldtype": "Select",
-   "in_list_view": 1,
-   "label": "Type",
-   "options": "Receipt\nConsume\nTransfer",
-   "reqd": 1
-  },
-  {
-   "fieldname": "product",
-   "fieldtype": "Link",
-   "in_list_view": 1,
-   "label": "Product",
-   "options": "Product",
-   "reqd": 1
-  },
-  {
-   "fetch_from": "product.unit_price",
-   "fetch_if_empty": 1,
-   "fieldname": "valuation_rate",
-   "fieldtype": "Currency",
-   "label": "Valuation Rate"
-  },
-  {
    "fieldname": "posting_datetime",
    "fieldtype": "Datetime",
    "label": "Posting DateTime"
   },
   {
-   "depends_on": "eval:doc.type === \"Transfer\"",
-   "fieldname": "from_warehouse",
-   "fieldtype": "Link",
-   "label": "From Warehouse",
-   "mandatory_depends_on": "eval:doc.type === \"Transfer\"",
-   "options": "Warehouse"
-  },
-  {
-   "fieldname": "to_warehouse",
-   "fieldtype": "Link",
-   "in_list_view": 1,
-   "label": "To Warehouse",
-   "options": "Warehouse",
-   "reqd": 1
+   "fieldname": "entry_items",
+   "fieldtype": "Table",
+   "label": "Entry Items",
+   "options": "Stock Entry Item"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-05-11 12:55:13.414921",
+ "modified": "2026-05-12 20:20:38.141638",
  "modified_by": "Administrator",
  "module": "Inventory Management",
  "name": "Stock Entry",

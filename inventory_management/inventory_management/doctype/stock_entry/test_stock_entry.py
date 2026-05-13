@@ -33,20 +33,37 @@ class IntegrationTestStockEntry(IntegrationTestCase):
 			}
 		).insert()
 
-
 	def tearDown(self):
 		frappe.db.rollback()
 
+	def _create_receipt(self, quantity, valuation_rate, warehouse=None):
+		warehouse = warehouse or self.warehouse_a.name
+		se = frappe.new_doc("Stock Entry")
+		se.append(
+			"entry_items",
+			{
+				"entry_type": "Receipt",
+				"product": self.product.name,
+				"quantity": quantity,
+				"valuation_rate": valuation_rate,
+				"to_warehouse": warehouse,
+			},
+		)
+		se.insert()
+		se.submit()
+		return se
+
 	def test_receipt_creates_one_ledger_entry_with_positive_quantity(self):
 		stock_entry = frappe.new_doc("Stock Entry")
-		stock_entry.update(
+		stock_entry.append(
+			"entry_items",
 			{
-				"type": "Receipt",
+				"entry_type": "Receipt",
 				"product": self.product.name,
 				"quantity": 10,
 				"valuation_rate": 100.0,
 				"to_warehouse": self.warehouse_a.name,
-			}
+			},
 		)
 		stock_entry.insert()
 		stock_entry.submit()
@@ -63,28 +80,18 @@ class IntegrationTestStockEntry(IntegrationTestCase):
 		self.assertEqual(entries[0].warehouse, self.warehouse_a.name)
 
 	def test_consume_creates_one_ledger_entry_with_negative_quantity(self):
-		se = frappe.new_doc("Stock Entry")
-		se.update(
-			{
-				"type": "Receipt",
-				"product": self.product.name,
-				"quantity": 10,
-				"valuation_rate": 100.0,
-				"to_warehouse": self.warehouse_a.name,
-			}
-		)
-		se.insert()
-		se.submit()
+		self._create_receipt(10, 100.0)
 
 		se2 = frappe.new_doc("Stock Entry")
-		se2.update(
+		se2.append(
+			"entry_items",
 			{
-				"type": "Consume",
+				"entry_type": "Consume",
 				"product": self.product.name,
 				"quantity": 5,
 				"valuation_rate": 100.0,
-				"to_warehouse": self.warehouse_a.name,
-			}
+				"from_warehouse": self.warehouse_a.name,
+			},
 		)
 		se2.insert()
 		se2.submit()
@@ -100,28 +107,19 @@ class IntegrationTestStockEntry(IntegrationTestCase):
 		self.assertEqual(entries[0].warehouse, self.warehouse_a.name)
 
 	def test_transfer_creates_two_ledger_entries(self):
-		# initialize the stock entry by reciept
-		se = frappe.new_doc("Stock Entry")
-		se.update({
-			"type": "Receipt",
-			"product": self.product.name,
-			"quantity": 10,
-			"valuation_rate": 100.0,
-			"to_warehouse": self.warehouse_a.name,
-		})
-		se.insert()
-		se.submit()
+		self._create_receipt(10, 100.0)
 
 		se2 = frappe.new_doc("Stock Entry")
-		se2.update(
+		se2.append(
+			"entry_items",
 			{
-				"type": "Transfer",
+				"entry_type": "Transfer",
 				"product": self.product.name,
 				"quantity": 5,
 				"valuation_rate": 100.0,
 				"from_warehouse": self.warehouse_a.name,
 				"to_warehouse": self.warehouse_b.name,
-			}
+			},
 		)
 		se2.insert()
 		se2.submit()
@@ -135,7 +133,6 @@ class IntegrationTestStockEntry(IntegrationTestCase):
 
 		self.assertEqual(len(entries), 3)
 
-
 		consume_entry = next(e for e in entries if e.entry_type == "Consume")
 		receipt_entry = next(e for e in entries if e.entry_type == "Receipt")
 
@@ -146,90 +143,60 @@ class IntegrationTestStockEntry(IntegrationTestCase):
 		self.assertEqual(receipt_entry.warehouse, self.warehouse_b.name)
 
 	def test_valuation_rate_updates_after_submit(self):
-		se = frappe.new_doc("Stock Entry")
-		se.update(
-			{
-				"type": "Receipt",
-				"product": self.product.name,
-				"quantity": 5,
-				"valuation_rate": 200.0,
-				"to_warehouse": self.warehouse_a.name,
-			}
-		)
-		se.insert()
-		se.submit()
+		self._create_receipt(5, 200.0)
 		self.product.reload()
 		self.assertEqual(self.product.unit_price, 200.0)
 
-		se2 = frappe.new_doc("Stock Entry")
-		se2.update(
-			{
-				"type": "Receipt",
-				"product": self.product.name,
-				"quantity": 5,
-				"valuation_rate": 100.0,
-				"to_warehouse": self.warehouse_a.name,
-			}
-		)
-		se2.insert()
-		se2.submit()
+		self._create_receipt(5, 100.0)
 		self.product.reload()
 		self.assertEqual(self.product.unit_price, 150.0)
 
 	def test_consume_exceeding_stock_raises_validation_error(self):
-		receipt = frappe.new_doc("Stock Entry")
-		receipt.update(
-			{
-				"type": "Receipt",
-				"product": self.product.name,
-				"quantity": 5,
-				"valuation_rate": 100.0,
-				"to_warehouse": self.warehouse_a.name,
-			}
-		)
-		receipt.insert()
-		receipt.submit()
+		self._create_receipt(5, 100.0)
 
 		consume = frappe.new_doc("Stock Entry")
-		consume.update(
+		consume.append(
+			"entry_items",
 			{
-				"type": "Consume",
+				"entry_type": "Consume",
 				"product": self.product.name,
 				"quantity": 10,
 				"valuation_rate": 100.0,
-				"to_warehouse": self.warehouse_a.name,
-			}
+				"from_warehouse": self.warehouse_a.name,
+			},
 		)
-		consume.insert()
-		with self.assertRaises(frappe.ValidationError):
+		with self.assertRaises(frappe.exceptions.ValidationError):
+			consume.insert()
 			consume.submit()
 
 	def test_transfer_exceeding_source_stock_raises_validation_error(self):
 		transfer = frappe.new_doc("Stock Entry")
-		transfer.update(
+		transfer.append(
+			"entry_items",
 			{
-				"type": "Transfer",
+				"entry_type": "Transfer",
 				"product": self.product.name,
 				"quantity": 1,
 				"valuation_rate": 100.0,
 				"from_warehouse": self.warehouse_a.name,
 				"to_warehouse": self.warehouse_b.name,
-			}
+			},
 		)
-		transfer.insert()
 		with self.assertRaises(frappe.ValidationError):
+			transfer.insert()
 			transfer.submit()
 
 	def test_submitted_stock_entry_sets_posting_datetime(self):
 		se = frappe.new_doc("Stock Entry")
-		se.update(
+		se.append(
+			"entry_items",
 			{
-				"type": "Receipt",
+				"entry_type": "Receipt",
 				"product": self.product.name,
 				"quantity": 1,
 				"valuation_rate": 100.0,
 				"to_warehouse": self.warehouse_a.name,
-			}
+			},
 		)
 		se.insert()
 		self.assertIsNotNone(se.posting_datetime)
